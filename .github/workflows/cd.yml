@@ -10,7 +10,7 @@ on:
 jobs:
   deploy:
     name: CD - Backend Deploy
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
     steps:
@@ -87,22 +87,25 @@ jobs:
       - name: Setup SSH key
         env:
           SSH_KEY: ${{ steps.vars.outputs.server_pass }}
+          SERVER_USER: ${{ steps.vars.outputs.server_user }}
           SERVER_IP: ${{ steps.vars.outputs.server_ip }}
         run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+          echo "$SSH_KEY" > private_key.pem
+          chmod 400 private_key.pem
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $SERVER_USER@$SERVER_IP << 'EOF'
 
       - name: Upload .env file to server
+        env:
+          SERVER_USER: ${{ steps.vars.outputs.server_user }}
+          SERVER_IP: ${{ steps.vars.outputs.server_ip }}
         run: |
-          scp -i ~/.ssh/deploy_key \
+          scp -o StrictHostKeyChecking=no -i private_key.pem \
             .env.${{ steps.vars.outputs.environment }} \
-            ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_ip }}:/tmp/backend_env
+            $SERVER_USER@$SERVER_IP:/tmp/backend_env
 
       - name: Deploy to server
         env:
-          SERVER_PASS: ${{ steps.vars.outputs.server_pass }}
+          SSH_KEY: ${{ steps.vars.outputs.server_pass }}
           SERVER_USER: ${{ steps.vars.outputs.server_user }}
           SERVER_IP: ${{ steps.vars.outputs.server_ip }}
           REMOTE_DIR: ${{ steps.vars.outputs.remote_dir }}
@@ -113,7 +116,7 @@ jobs:
           echo "access gained"
           echo "deploying to $ENVIRONMENT server"
 
-          ssh -i ~/.ssh/deploy_key $SERVER_USER@$SERVER_IP << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $SERVER_USER@$SERVER_IP << 'EOF'
             set -e
 
             REMOTE_DIR="${REMOTE_DIR}"
@@ -183,7 +186,7 @@ jobs:
 
   notify_slack:
     name: Notify Slack
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [deploy]
     if: always()
 
