@@ -36,7 +36,7 @@ jobs:
           DB_USER="${{ secrets.DB_USER }}"
           DB_PASS="${{ secrets.DB_PASS }}"
           DB_NAME="${{ vars.DB_NAME || 'watchdog_dbname' }}"
-          DATABASE_URL="postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@${{ secrets.DB_HOST }}/${{ secrets.DB_NAME }}"
+          DATABASE_URL="${{ secrets.DATABASE_URL }}"
 
           MAIL_MAILER="${{ vars.MAIL_MAILER || 'smtp' }}"
           SMTP_SERVER="${{ secrets.SMTP_SERVER }}"
