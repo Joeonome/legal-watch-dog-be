@@ -24,7 +24,7 @@ jobs:
           cat <<EOF > .env.stage
           DEBUG=False
           APP_PORT="${{ secrets.APP_PORT || vars.APP_PORT || '8001' }}"
-          APP_NAME="${{ vars.APP_NAME || '"LEGAL WATCH DOG"' }}"
+          APP_NAME="${{ vars.APP_NAME || 'LEGAL WATCH DOG' }}"
           APP_VERSION="${{ vars.APP_VERSION || '1.0.0' }}"
           ENVIRONMENT="staging"
           SECRET_KEY="${{ secrets.SECRET_KEY }}"
@@ -108,7 +108,9 @@ jobs:
             git fetch origin "\$BRANCH"
             git reset --hard origin/"\$BRANCH"
 
-            mv /tmp/backend_env .env || true
+            cat /tmp/backend_env
+            mv /tmp/backend_env .env.stage || true
+            cat .env.stage
 
             if ! command -v uv &> /dev/null; then
               curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -120,14 +122,14 @@ jobs:
             uv sync || true
             uv run alembic upgrade head || true
 
-            set -a; source .env; set +a
+            set -a; source .env.stage; set +a
 
             PM2_APP_NAME="legal-watchdog-be-\$ENVIRONMENT"
 
             if ! command -v pm2 &> /dev/null; then
               npm install -g pm2
             fi
-            mv .env .env."\$ENVIRONMENT"
+           
             pm2 describe "\$PM2_APP_NAME" > /dev/null 2>&1 && pm2 delete "\$PM2_APP_NAME" || true
             pm2 start ecosystem.config.js --name "\$PM2_APP_NAME" --update-env
 
