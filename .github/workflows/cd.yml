@@ -134,7 +134,10 @@ jobs:
 
             cd "$REMOTE_DIR"
 
-            git pull origin "$BRANCH"
+            # git pull origin "$BRANCH"
+            git fetch origin "$BRANCH"
+            git reset --hard origin/"$BRANCH"
+
             mv /tmp/backend_env .env.stage
 
             if ! command -v uv &> /dev/null; then
