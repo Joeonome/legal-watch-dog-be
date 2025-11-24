@@ -1,4 +1,4 @@
-name: Backend CD - Deploy (Dynamic Environments)
+name: Backend CD - Deployment (Dynamic Environments)
 
 on:
   workflow_dispatch:
