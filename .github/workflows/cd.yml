@@ -37,7 +37,13 @@ jobs:
             echo "allow_test_emails=true" >> $GITHUB_OUTPUT
             echo "server_user=${{ secrets.STAGING_USER }}" >> $GITHUB_OUTPUT
             echo "server_ip=${{ secrets.STAGING_IP }}" >> $GITHUB_OUTPUT
-            echo "server_pass=${{ secrets.STAGING_PASS }}" >> $GITHUB_OUTPUT
+            # echo "server_pass=${{ secrets.STAGING_PASS }}" >> $GITHUB_OUTPUT\
+
+            echo "server_pass<<EOF" >> $GITHUB_OUTPUT
+            echo "${{ secrets.STAGING_PASS }}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+
+            
             echo "remote_dir=/home/ubuntu/apps/backend/ec2-for-tasing-" >> $GITHUB_OUTPUT
             echo "repo_url=https://github.com/Joeonome/legal-watch-dog-be.git" >> $GITHUB_OUTPUT
           fi
