@@ -143,8 +143,16 @@ jobs:
             if ! command -v uv &> /dev/null; then
               echo "Installing uv..."
               curl -LsSf https://astral.sh/uv/install.sh | sh
+  
+              # Ensure PATH is updated inside SSH session
               export PATH="$HOME/.local/bin:$PATH"
+              source "$HOME/.local/bin/env" 2>/dev/null || true
             fi
+
+            # Extra safety: ensure PATH is updated even if uv already installed
+            export PATH="$HOME/.local/bin:$PATH"
+            source "$HOME/.local/bin/env" 2>/dev/null || true
+
 
             uv sync
             uv run alembic upgrade head
