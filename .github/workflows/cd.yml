@@ -102,7 +102,7 @@ jobs:
             .env.${{ steps.vars.outputs.environment }} \
             $SERVER_USER@$SERVER_IP:/tmp/backend_env
 
-      - name: Deploy to server
+      - name: Deploy to the server
         env:
           SSH_KEY: ${{ steps.vars.outputs.server_pass }}
           SERVER_USER: ${{ steps.vars.outputs.server_user }}
