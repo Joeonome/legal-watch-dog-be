@@ -55,44 +55,44 @@ jobs:
         run: |
           ENV_NAME="${{ steps.vars.outputs.environment }}"
           cat > .env.${ENV_NAME} <<EOF
-DEBUG=False
-APP_PORT="${{ secrets.APP_PORT || '8001' }}"
-APP_NAME="LEGAL WATCH DOG"
-APP_VERSION="1.0.0"
-ENVIRONMENT="${ENV_NAME}"
-SECRET_KEY="${{ secrets.SECRET_KEY }}"
-LEGAL_WATCH_DOG_BASE_URL="${{ secrets.BASE_URL || '' }}"
-
-DB_TYPE="postgresql"
-DB_HOST="${{ secrets.DB_HOST }}"
-DB_PORT="${{ secrets.DB_PORT }}"
-DB_USER="${{ secrets.DB_USER }}"
-DB_PASS="${{ secrets.DB_PASS }}"
-DB_NAME="${{ steps.vars.outputs.db_name }}"
-DATABASE_URL="postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@${{ secrets.DB_HOST }}/${{ steps.vars.outputs.db_name }}"
-
-MAIL_MAILER="smtp"
-SMTP_SERVER="${{ secrets.SMTP_SERVER }}"
-SMTP_PORT="${{ secrets.SMTP_PORT }}"
-MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}"
-MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}"
-MAIL_ENCRYPTION="${{ secrets.MAIL_ENCRYPTION }}"
-EMAIL="${{ secrets.EMAIL }}"
-MAIL_FROM_NAME="LEGAL WATCH DOG"
-
-APP_URL="https://minamoto.emerj.net"
-DEV_URL="http://localhost:3000"
-REDIS_URL="${{ secrets.REDIS_URL }}"
-REDIS_CACHE_TTL_SECONDS="${{ secrets.REDIS_CACHE_TTL_SECONDS }}"
-JWT_SECRET="${{ secrets.JWT_SECRET }}"
-JWT_ALGORITHM="${{ secrets.JWT_ALGORITHM }}"
-JWT_EXPIRY="${{ secrets.JWT_EXPIRY }}"
-ACCESS_TOKEN_EXPIRATION="${{ secrets.ACCESS_TOKEN_EXPIRATION }}"
-
-ALLOW_TEST_EMAIL_PROVIDERS="${{ steps.vars.outputs.allow_test_emails }}"
-TEST_EMAIL_PROVIDERS="gmail.com"
-ENCRYPTION_KEY="${{ secrets.ENCRYPTION_KEY }}"
-EOF
+            DEBUG=False
+            APP_PORT="${{ secrets.APP_PORT || '8001' }}"
+            APP_NAME="LEGAL WATCH DOG"
+            APP_VERSION="1.0.0"
+            ENVIRONMENT="${ENV_NAME}"
+            SECRET_KEY="${{ secrets.SECRET_KEY }}"
+            LEGAL_WATCH_DOG_BASE_URL="${{ secrets.BASE_URL || '' }}"
+            
+            DB_TYPE="postgresql"
+            DB_HOST="${{ secrets.DB_HOST }}"
+            DB_PORT="${{ secrets.DB_PORT }}"
+            DB_USER="${{ secrets.DB_USER }}"
+            DB_PASS="${{ secrets.DB_PASS }}"
+            DB_NAME="${{ steps.vars.outputs.db_name }}"
+            DATABASE_URL="postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@${{ secrets.DB_HOST }}/${{ steps.vars.outputs.db_name }}"
+            
+            MAIL_MAILER="smtp"
+            SMTP_SERVER="${{ secrets.SMTP_SERVER }}"
+            SMTP_PORT="${{ secrets.SMTP_PORT }}"
+            MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}"
+            MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}"
+            MAIL_ENCRYPTION="${{ secrets.MAIL_ENCRYPTION }}"
+            EMAIL="${{ secrets.EMAIL }}"
+            MAIL_FROM_NAME="LEGAL WATCH DOG"
+            
+            APP_URL="https://minamoto.emerj.net"
+            DEV_URL="http://localhost:3000"
+            REDIS_URL="${{ secrets.REDIS_URL }}"
+            REDIS_CACHE_TTL_SECONDS="${{ secrets.REDIS_CACHE_TTL_SECONDS }}"
+            JWT_SECRET="${{ secrets.JWT_SECRET }}"
+            JWT_ALGORITHM="${{ secrets.JWT_ALGORITHM }}"
+            JWT_EXPIRY="${{ secrets.JWT_EXPIRY }}"
+            ACCESS_TOKEN_EXPIRATION="${{ secrets.ACCESS_TOKEN_EXPIRATION }}"
+            
+            ALLOW_TEST_EMAIL_PROVIDERS="${{ steps.vars.outputs.allow_test_emails }}"
+            TEST_EMAIL_PROVIDERS="gmail.com"
+            ENCRYPTION_KEY="${{ secrets.ENCRYPTION_KEY }}"
+          EOF
 
       - name: Setup private key file
         env:
