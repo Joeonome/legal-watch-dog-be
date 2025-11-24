@@ -5,12 +5,14 @@ on:
   push:
     branches:
       - main
-      - dev
+      - staging
 
 jobs:
   deploy:
     name: CD - Backend Deploy
     runs-on: ubuntu-latest
+
+    # Automatically set the correct GitHub environment
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
     steps:
@@ -22,10 +24,12 @@ jobs:
         run: |
           # Choose environment based on the ref
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "environment=prod" >> $GITHUB_OUTPUT
             echo "branch=main" >> $GITHUB_OUTPUT
+
             echo "db_name=${{ secrets.DB_NAME }}" >> $GITHUB_OUTPUT
             echo "allow_test_emails=false" >> $GITHUB_OUTPUT
+
             echo "server_user=${{ secrets.PROD_USER }}" >> $GITHUB_OUTPUT
             echo "server_ip=${{ secrets.PROD_IP }}" >> $GITHUB_OUTPUT
 
@@ -35,11 +39,14 @@ jobs:
 
             echo "remote_dir=/home/ifeanyinw/apps/backend/legal-watch-dog-be" >> $GITHUB_OUTPUT
             echo "repo_url=https://github.com/hngprojects/legal-watch-dog-be.git" >> $GITHUB_OUTPUT
+
           else
-            echo "environment=staging" >> $GITHUB_OUTPUT
-            echo "branch=dev" >> $GITHUB_OUTPUT
+            echo "environment=stage" >> $GITHUB_OUTPUT
+            echo "branch=staging" >> $GITHUB_OUTPUT
+
             echo "db_name=${{ secrets.STAGING_DB_NAME }}" >> $GITHUB_OUTPUT
             echo "allow_test_emails=true" >> $GITHUB_OUTPUT
+
             echo "server_user=${{ secrets.STAGING_USER }}" >> $GITHUB_OUTPUT
             echo "server_ip=${{ secrets.STAGING_IP }}" >> $GITHUB_OUTPUT
 
@@ -101,7 +108,7 @@ jobs:
           echo "$SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
 
-      - name: Upload .env file to server
+      - name: Upload environment file to server
         env:
           SERVER_USER: ${{ steps.vars.outputs.server_user }}
           SERVER_IP: ${{ steps.vars.outputs.server_ip }}
@@ -121,8 +128,7 @@ jobs:
           BRANCH: ${{ steps.vars.outputs.branch }}
           ENVIRONMENT: ${{ steps.vars.outputs.environment }}
         run: |
-          echo "access gained"
-          echo "deploying to $ENVIRONMENT server"
+          echo "Deploying to ${ENVIRONMENT}..."
 
           ssh -o StrictHostKeyChecking=no -i private_key.pem $SERVER_USER@$SERVER_IP << EOF
             set -euo pipefail
@@ -149,7 +155,6 @@ jobs:
 
             # Install uv if missing and ensure PATH for this session
             if ! command -v uv &> /dev/null; then
-              echo "Installing uv..."
               curl -LsSf https://astral.sh/uv/install.sh | sh
               export PATH="$HOME/.local/bin:$PATH"
               # uv installer provides an env helper
@@ -177,7 +182,6 @@ jobs:
             PM2_APP_NAME="legal-watchdog-be-${ENVIRONMENT}"
 
             if ! command -v pm2 &> /dev/null; then
-              echo "Installing PM2..."
               npm install -g pm2
             fi
 
