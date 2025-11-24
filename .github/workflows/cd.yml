@@ -120,7 +120,7 @@ jobs:
           echo "access gained"
           echo "deploying to $ENVIRONMENT server"
 
-          ssh -o StrictHostKeyChecking=no -i private_key.pem $SERVER_USER@$SERVER_IP << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $SERVER_USER@$SERVER_IP << EOF
             set -e
 
             REMOTE_DIR="${REMOTE_DIR}"
@@ -135,7 +135,7 @@ jobs:
             cd "$REMOTE_DIR"
 
             git pull origin "$BRANCH"
-            mv /tmp/backend_env .env
+            mv /tmp/backend_env .env.stage
 
             if ! command -v uv &> /dev/null; then
               echo "Installing uv..."
