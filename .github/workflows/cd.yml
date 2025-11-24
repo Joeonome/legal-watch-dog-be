@@ -62,7 +62,7 @@ jobs:
           APP_VERSION="1.0.0"
           ENVIRONMENT="${ENV_NAME}"
           SECRET_KEY="${{ secrets.SECRET_KEY }}"
-          LEGAL_WATCH_DOG_BASE_URL="${{ secrets.BASE_URL || '' }}"
+          LEGAL_WATCH_DOG_BASE_URL="${{ secrets.LEGAL_WATCH_DOG_BASE_URL || '' }}"
           
           DB_TYPE="postgresql"
           DB_HOST="${{ secrets.DB_HOST }}"
@@ -87,7 +87,7 @@ jobs:
           REDIS_CACHE_TTL_SECONDS="${{ secrets.REDIS_CACHE_TTL_SECONDS }}"
           JWT_SECRET="${{ secrets.JWT_SECRET }}"
           JWT_ALGORITHM="${{ secrets.JWT_ALGORITHM }}"
-          JWT_EXPIRY="${{ secrets.JWT_EXPIRY }}"
+          JWT_EXPIRY_HOURS="${{ secrets.JWT_EXPIRY_HOURS }}"
           ACCESS_TOKEN_EXPIRATION="${{ secrets.ACCESS_TOKEN_EXPIRATION }}"
           
           ALLOW_TEST_EMAIL_PROVIDERS="${{ steps.vars.outputs.allow_test_emails }}"
