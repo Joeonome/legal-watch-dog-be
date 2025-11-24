@@ -98,44 +98,44 @@ jobs:
             BRANCH="staging"
             ENVIRONMENT="stage"
 
-            if [ ! -d "\$REMOTE_DIR" ]; then
-              mkdir -p \$(dirname "\$REMOTE_DIR")
-              git clone "\$REPO_URL" "\$REMOTE_DIR"
+            if [ ! -d "$REMOTE_DIR" ]; then
+              mkdir -p $(dirname "$REMOTE_DIR")
+              git clone "$REPO_URL" "$REMOTE_DIR"
             fi
 
-            cd "\$REMOTE_DIR"
+            cd "$REMOTE_DIR"
 
-            git fetch origin "\$BRANCH"
-            git reset --hard origin/"\$BRANCH"
+            git fetch origin "$BRANCH"
+            git reset --hard origin/"$BRANCH"
 
             mv /tmp/backend_env .env.stage || true
           
             if ! command -v uv &> /dev/null; then
               curl -LsSf https://astral.sh/uv/install.sh | sh
-              export PATH="\$HOME/.local/bin:\$PATH"
+              export PATH="$HOME/.local/bin:$PATH"
             fi
 
-            export PATH="\$HOME/.local/bin:\$PATH"
+            export PATH="$HOME/.local/bin:$PATH"
 
             uv sync || true
             uv run alembic upgrade head || true
 
             set -a; source .env.stage; set +a
 
-            PM2_APP_NAME="legal-watchdog-be-\$ENVIRONMENT"
+            PM2_APP_NAME="legal-watchdog-be-$ENVIRONMENT"
 
             if ! command -v pm2 &> /dev/null; then
               npm install -g pm2
             fi
            
-            pm2 describe "\$PM2_APP_NAME" > /dev/null 2>&1 && pm2 delete "\$PM2_APP_NAME" || true
-            pm2 start ecosystem.config.js --name "\$PM2_APP_NAME" --update-env
+            pm2 describe "$PM2_APP_NAME" > /dev/null 2>&1 && pm2 delete "$PM2_APP_NAME" || true
+            pm2 start ecosystem.config.js --name "$PM2_APP_NAME" --update-env
 
             pm2 save
            
-            pm2 startup systemd -u \$(whoami) --hp \$(echo \$HOME) || true
+            pm2 startup systemd -u $(whoami) --hp $(echo $HOME) || true
 
-            echo "\${ENVIRONMENT} deployment complete!"
+            echo "${ENVIRONMENT} deployment complete!"
           EOF
 
           rm -f private_key.pem
