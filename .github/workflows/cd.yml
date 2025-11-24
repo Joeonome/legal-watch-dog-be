@@ -90,7 +90,7 @@ jobs:
           echo "deploying to staging server..."
 
 
-          ssh -o StrictHostKeyChecking=no -i private_key.pem $SERVER_USER@$SERVER_IP << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $SERVER_USER@$SERVER_IP << EOF
             set -e
 
             REMOTE_DIR="/home/ubuntu/apps/backend/ec2-for-staging"
