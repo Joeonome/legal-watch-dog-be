@@ -66,13 +66,15 @@ jobs:
       - name: Setup private key file
         env:
           SSH_KEY: "${{ secrets.STAGING_PASS }}"
-          SERVER_USER: "${{ secrets.STAGING_USER }}"
-          SERVER_IP: "${{ secrets.STAGING_IP }}"
         run: |
           echo "$SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
 
       - name: Upload environment file to server
+        env:
+          SSH_KEY: "${{ secrets.STAGING_PASS }}"
+          SERVER_USER: "${{ secrets.STAGING_USER }}"
+          SERVER_IP: "${{ secrets.STAGING_IP }}"
         run: |
           scp -o StrictHostKeyChecking=no -i private_key.pem \
             .env.stage \
