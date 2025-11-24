@@ -66,8 +66,8 @@ jobs:
       - name: Setup private key file
         env:
           SSH_KEY: "${{ secrets.STAGING_PASS }}"
-          SERVER_USER: "${{ STAGING_USER }}"
-          SERVER_IP: "${{ STAGING_IP }}"
+          SERVER_USER: "${{ secrets.STAGING_USER }}"
+          SERVER_IP: "${{ secrets.STAGING_IP }}"
         run: |
           echo "$SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
