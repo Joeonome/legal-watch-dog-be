@@ -12,7 +12,6 @@ jobs:
     name: CD - Backend Deploy
     runs-on: ubuntu-latest
 
-    # Automatically set the correct GitHub environment
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
     steps:
@@ -25,10 +24,8 @@ jobs:
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "environment=prod" >> $GITHUB_OUTPUT
             echo "branch=main" >> $GITHUB_OUTPUT
-
             echo "db_name=${{ secrets.DB_NAME }}" >> $GITHUB_OUTPUT
             echo "allow_test_emails=false" >> $GITHUB_OUTPUT
-
             echo "server_user=${{ secrets.PROD_USER }}" >> $GITHUB_OUTPUT
             echo "server_ip=${{ secrets.PROD_IP }}" >> $GITHUB_OUTPUT
 
@@ -38,14 +35,11 @@ jobs:
 
             echo "remote_dir=/home/ifeanyinw/apps/backend/legal-watch-dog-be" >> $GITHUB_OUTPUT
             echo "repo_url=https://github.com/hngprojects/legal-watch-dog-be.git" >> $GITHUB_OUTPUT
-
           else
             echo "environment=stage" >> $GITHUB_OUTPUT
             echo "branch=staging" >> $GITHUB_OUTPUT
-
             echo "db_name=${{ secrets.STAGING_DB_NAME }}" >> $GITHUB_OUTPUT
             echo "allow_test_emails=true" >> $GITHUB_OUTPUT
-
             echo "server_user=${{ secrets.STAGING_USER }}" >> $GITHUB_OUTPUT
             echo "server_ip=${{ secrets.STAGING_IP }}" >> $GITHUB_OUTPUT
 
@@ -61,43 +55,43 @@ jobs:
         run: |
           ENV_NAME="${{ steps.vars.outputs.environment }}"
           cat > .env.${ENV_NAME} <<EOF
-            DEBUG=False
-            APP_PORT="${{ secrets.APP_PORT || '8001' }}"
-            APP_NAME="LEGAL WATCH DOG"
-            APP_VERSION="1.0.0"
-            ENVIRONMENT="${ENV_NAME}"
-            SECRET_KEY="${{ secrets.SECRET_KEY }}"
-            LEGAL_WATCH_DOG_BASE_URL="${{ secrets.BASE_URL || '' }}"
-            
-            DB_TYPE="postgresql"
-            DB_HOST="${{ secrets.DB_HOST }}"
-            DB_PORT="${{ secrets.DB_PORT }}"
-            DB_USER="${{ secrets.DB_USER }}"
-            DB_PASS="${{ secrets.DB_PASS }}"
-            DB_NAME="${{ steps.vars.outputs.db_name }}"
-            DATABASE_URL="postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@${{ secrets.DB_HOST }}/${{ steps.vars.outputs.db_name }}"
-            
-            MAIL_MAILER="smtp"
-            SMTP_SERVER="${{ secrets.SMTP_SERVER }}"
-            SMTP_PORT="${{ secrets.SMTP_PORT }}"
-            MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}"
-            MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}"
-            MAIL_ENCRYPTION="${{ secrets.MAIL_ENCRYPTION }}"
-            EMAIL="${{ secrets.EMAIL }}"
-            MAIL_FROM_NAME="LEGAL WATCH DOG"
-            
-            APP_URL="https://minamoto.emerj.net"
-            DEV_URL="http://localhost:3000"
-            REDIS_URL="${{ secrets.REDIS_URL }}"
-            REDIS_CACHE_TTL_SECONDS="${{ secrets.REDIS_CACHE_TTL_SECONDS }}"
-            JWT_SECRET="${{ secrets.JWT_SECRET }}"
-            JWT_ALGORITHM="${{ secrets.JWT_ALGORITHM }}"
-            JWT_EXPIRY="${{ secrets.JWT_EXPIRY }}"
-            ACCESS_TOKEN_EXPIRATION="${{ secrets.ACCESS_TOKEN_EXPIRATION }}"
-            
-            ALLOW_TEST_EMAIL_PROVIDERS="${{ steps.vars.outputs.allow_test_emails }}"
-            TEST_EMAIL_PROVIDERS="gmail.com"
-            ENCRYPTION_KEY="${{ secrets.ENCRYPTION_KEY }}"
+          DEBUG=False
+          APP_PORT="${{ secrets.APP_PORT || '8001' }}"
+          APP_NAME="LEGAL WATCH DOG"
+          APP_VERSION="1.0.0"
+          ENVIRONMENT="${ENV_NAME}"
+          SECRET_KEY="${{ secrets.SECRET_KEY }}"
+          LEGAL_WATCH_DOG_BASE_URL="${{ secrets.BASE_URL || '' }}"
+          
+          DB_TYPE="postgresql"
+          DB_HOST="${{ secrets.DB_HOST }}"
+          DB_PORT="${{ secrets.DB_PORT }}"
+          DB_USER="${{ secrets.DB_USER }}"
+          DB_PASS="${{ secrets.DB_PASS }}"
+          DB_NAME="${{ steps.vars.outputs.db_name }}"
+          DATABASE_URL="postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@${{ secrets.DB_HOST }}/${{ steps.vars.outputs.db_name }}"
+          
+          MAIL_MAILER="smtp"
+          SMTP_SERVER="${{ secrets.SMTP_SERVER }}"
+          SMTP_PORT="${{ secrets.SMTP_PORT }}"
+          MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}"
+          MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}"
+          MAIL_ENCRYPTION="${{ secrets.MAIL_ENCRYPTION }}"
+          EMAIL="${{ secrets.EMAIL }}"
+          MAIL_FROM_NAME="LEGAL WATCH DOG"
+          
+          APP_URL="https://minamoto.emerj.net"
+          DEV_URL="http://localhost:3000"
+          REDIS_URL="${{ secrets.REDIS_URL }}"
+          REDIS_CACHE_TTL_SECONDS="${{ secrets.REDIS_CACHE_TTL_SECONDS }}"
+          JWT_SECRET="${{ secrets.JWT_SECRET }}"
+          JWT_ALGORITHM="${{ secrets.JWT_ALGORITHM }}"
+          JWT_EXPIRY="${{ secrets.JWT_EXPIRY }}"
+          ACCESS_TOKEN_EXPIRATION="${{ secrets.ACCESS_TOKEN_EXPIRATION }}"
+          
+          ALLOW_TEST_EMAIL_PROVIDERS="${{ steps.vars.outputs.allow_test_emails }}"
+          TEST_EMAIL_PROVIDERS="gmail.com"
+          ENCRYPTION_KEY="${{ secrets.ENCRYPTION_KEY }}"
           EOF
 
       - name: Setup private key file
@@ -117,7 +111,7 @@ jobs:
             .env.${ENV_NAME} \
             $SERVER_USER@$SERVER_IP:/tmp/backend_env
 
-      - name: Deploy to the server
+      - name: Deploy to server
         env:
           SSH_KEY: ${{ steps.vars.outputs.server_pass }}
           SERVER_USER: ${{ steps.vars.outputs.server_user }}
@@ -165,7 +159,7 @@ jobs:
             if ! command -v pm2 &> /dev/null; then
               npm install -g pm2
             fi
-            mv .env .env.stage
+
             pm2 describe "\$PM2_APP_NAME" > /dev/null 2>&1 && pm2 delete "\$PM2_APP_NAME" || true
             pm2 start ecosystem.config.js --name "\$PM2_APP_NAME" --update-env
 
@@ -192,22 +186,20 @@ jobs:
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
           if [ "$BRANCH_NAME" == "main" ]; then
             ENV_NAME="Production"
-            EMOJI="🚀"
           else
             ENV_NAME="Staging"
-            EMOJI="🧪"
           fi
 
           if [ "${DEPLOY_RESULT}" == "success" ]; then
-            MAIN_STATUS="✅ Deployment Successful"
+            MAIN_STATUS="Deployment Successful"
             STATUS_COLOR="good"
           else
-            MAIN_STATUS="❌ Deployment Failed"
+            MAIN_STATUS="Deployment Failed"
             STATUS_COLOR="danger"
           fi
 
           LOG_LINK="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
-          PAYLOAD="{\"attachments\":[{\"color\":\"${STATUS_COLOR}\",\"blocks\":[{\"type\":\"header\",\"text\":{\"type\":\"plain_text\",\"text\":\"⚙️ Backend Deployment Update\",\"emoji\":true}},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*${MAIN_STATUS}* on *${ENV_NAME}*\"}},{\"type\":\"divider\"},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"Logs: <${LOG_LINK}|Click here>\"}}]}]}"
+          PAYLOAD="{\"attachments\":[{\"color\":\"${STATUS_COLOR}\",\"blocks\":[{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*${MAIN_STATUS}* on *${ENV_NAME}*\"}},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"Logs: <${LOG_LINK}|View>\"}}]}]}"
 
-          curl -s -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK || true
+          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK" || true
