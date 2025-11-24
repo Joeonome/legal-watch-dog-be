@@ -160,7 +160,7 @@ jobs:
             if ! command -v pm2 &> /dev/null; then
               npm install -g pm2
             fi
-
+            mv .env .env.stage
             pm2 describe "\$PM2_APP_NAME" > /dev/null 2>&1 && pm2 delete "\$PM2_APP_NAME" || true
             pm2 start ecosystem.config.js --name "\$PM2_APP_NAME" --update-env
 
