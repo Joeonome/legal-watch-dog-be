@@ -39,7 +39,7 @@ jobs:
           else
             echo "environment=stage" >> $GITHUB_OUTPUT
             echo "branch=staging" >> $GITHUB_OUTPUT
-            echo "db_name=${{ secrets.STAGING_DB_NAME }}" >> $GITHUB_OUTPUT
+            echo "db_name=${{ vars.DB_NAME }}" >> $GITHUB_OUTPUT
             echo "allow_test_emails=true" >> $GITHUB_OUTPUT
             echo "server_user=${{ secrets.STAGING_USER }}" >> $GITHUB_OUTPUT
             echo "server_ip=${{ secrets.STAGING_IP }}" >> $GITHUB_OUTPUT
