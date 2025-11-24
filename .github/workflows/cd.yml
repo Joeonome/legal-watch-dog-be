@@ -1,4 +1,4 @@
-name: Backend CD - Deploy (fixed)
+name: Backend CD - Deploy (Dynamic Environments)
 
 on:
   workflow_dispatch:
@@ -22,7 +22,6 @@ jobs:
       - name: Set deployment variables
         id: vars
         run: |
-          # Choose environment based on the ref
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "environment=prod" >> $GITHUB_OUTPUT
             echo "branch=main" >> $GITHUB_OUTPUT
@@ -54,7 +53,7 @@ jobs:
             echo "${{ secrets.STAGING_PASS }}" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
 
-            echo "remote_dir=/home/ubuntu/apps/backend/ec2-for-tasing-" >> $GITHUB_OUTPUT
+            echo "remote_dir=/home/ubuntu/apps/backend/ec2-for-staging" >> $GITHUB_OUTPUT
             echo "repo_url=https://github.com/Joeonome/legal-watch-dog-be.git" >> $GITHUB_OUTPUT
           fi
 
@@ -133,77 +132,49 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i private_key.pem $SERVER_USER@$SERVER_IP << EOF
             set -euo pipefail
 
-            # values were expanded by GH Actions into the heredoc text above
             REMOTE_DIR="${REMOTE_DIR}"
             REPO_URL="${REPO_URL}"
             BRANCH="${BRANCH}"
 
-            # ensure parent directory exists on remote (escape $() so it runs remotely)
-            if [ ! -d "${REMOTE_DIR}" ]; then
+            if [ ! -d "\$REMOTE_DIR" ]; then
               mkdir -p \$(dirname "\$REMOTE_DIR")
-              git clone "${REPO_URL}" "${REMOTE_DIR}"
+              git clone "\$REPO_URL" "\$REMOTE_DIR"
             fi
 
-            cd "${REMOTE_DIR}"
+            cd "\$REMOTE_DIR"
 
-            # Ensure server matches remote branch exactly
-            git fetch origin "${BRANCH}"
-            git reset --hard origin/"${BRANCH}"
+            git fetch origin "\$BRANCH"
+            git reset --hard origin/"\$BRANCH"
 
-            # move uploaded env into place
             mv /tmp/backend_env .env || true
 
-            # Install uv if missing and ensure PATH for this session
             if ! command -v uv &> /dev/null; then
               curl -LsSf https://astral.sh/uv/install.sh | sh
-              export PATH="$HOME/.local/bin:$PATH"
-              # uv installer provides an env helper
-              if [ -f "$HOME/.local/bin/env" ]; then
-                # source it for sh/bash compatibility
-                source "$HOME/.local/bin/env" || true
-              fi
+              export PATH="\$HOME/.local/bin:\$PATH"
             fi
 
-            # Ensure PATH is present even if uv was already installed earlier
-            export PATH="$HOME/.local/bin:$PATH"
-            if [ -f "$HOME/.local/bin/env" ]; then
-              source "$HOME/.local/bin/env" || true
-            fi
+            export PATH="\$HOME/.local/bin:\$PATH"
 
-            # run db migrations
             uv sync || true
             uv run alembic upgrade head || true
 
-            # load env for the following commands
-            set -a
-            source .env
-            set +a
+            set -a; source .env; set +a
 
-            PM2_APP_NAME="legal-watchdog-be-${ENVIRONMENT}"
+            PM2_APP_NAME="legal-watchdog-be-\${ENVIRONMENT}"
 
             if ! command -v pm2 &> /dev/null; then
               npm install -g pm2
             fi
-
-            if [ ! -f "ecosystem.config.js" ]; then
-              echo "Error: ecosystem.config.js not found!"
-              exit 1
-            fi
-
-            echo "Checking for existing PM2 processes..."
-            pm2 describe "${PM2_APP_NAME}" > /dev/null 2>&1 && pm2 delete "${PM2_APP_NAME}" || echo "No existing process found"
-
-            echo "Starting application with ecosystem.config.js..."
-            pm2 start ecosystem.config.js --update-env || pm2 restart ecosystem.config.js --update-env
+            mv .env .env.stage
+            pm2 describe "\$PM2_APP_NAME" > /dev/null 2>&1 && pm2 delete "\$PM2_APP_NAME" || true
+            pm2 start ecosystem.config.js --name "\$PM2_APP_NAME" --update-env
 
             pm2 save
             pm2 startup systemd -u \$(whoami) --hp \$(echo \$HOME) || true
 
-            echo "${ENVIRONMENT} deployment complete on port ${APP_PORT}!"
-            pm2 status
+            echo "\${ENVIRONMENT} deployment complete!"
           EOF
 
-          # cleanup private key
           rm -f private_key.pem
 
   notify_slack:
@@ -230,15 +201,13 @@ jobs:
           if [ "${DEPLOY_RESULT}" == "success" ]; then
             MAIN_STATUS="✅ Deployment Successful"
             STATUS_COLOR="good"
-            DETAIL_MSG="\n✅ *${ENV_NAME} Environment:* Successfully deployed"
           else
             MAIN_STATUS="❌ Deployment Failed"
             STATUS_COLOR="danger"
-            DETAIL_MSG="\n❌ *${ENV_NAME} Environment:* Failed to deploy"
           fi
 
           LOG_LINK="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
-          PAYLOAD="{\"attachments\":[{\"color\":\"${STATUS_COLOR}\",\"blocks\":[{\"type\":\"header\",\"text\":{\"type\":\"plain_text\",\"text\":\"⚙️ Backend Deployment Update\",\"emoji\":true}},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*${MAIN_STATUS}*${DETAIL_MSG}\"}},{\"type\":\"divider\"},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"Need help? Check the <${LOG_LINK}|detailed logs>.\"}}]}]}"
+          PAYLOAD="{\"attachments\":[{\"color\":\"${STATUS_COLOR}\",\"blocks\":[{\"type\":\"header\",\"text\":{\"type\":\"plain_text\",\"text\":\"⚙️ Backend Deployment Update\",\"emoji\":true}},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*${MAIN_STATUS}* on *${ENV_NAME}*\"}},{\"type\":\"divider\"},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"Logs: <${LOG_LINK}|Click here>\"}}]}]}"
 
           curl -s -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK || true
