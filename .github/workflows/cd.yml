@@ -145,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - deploy_staging
-      - deploy_production
+      
     if: always()
 
     steps:
