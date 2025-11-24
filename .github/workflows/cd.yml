@@ -108,10 +108,8 @@ jobs:
             git fetch origin "\$BRANCH"
             git reset --hard origin/"\$BRANCH"
 
-            cat /tmp/backend_env
             mv /tmp/backend_env .env.stage || true
-            cat .env.stage
-
+          
             if ! command -v uv &> /dev/null; then
               curl -LsSf https://astral.sh/uv/install.sh | sh
               export PATH="\$HOME/.local/bin:\$PATH"
@@ -134,7 +132,8 @@ jobs:
             pm2 start ecosystem.config.js --name "\$PM2_APP_NAME" --update-env
 
             pm2 save
-            pm2 startup systemd -u $(whoami) --hp $(echo $HOME) || true
+           
+            pm2 startup systemd -u \$(whoami) --hp \$(echo \$HOME) || true
 
             echo "\${ENVIRONMENT} deployment complete!"
           EOF
